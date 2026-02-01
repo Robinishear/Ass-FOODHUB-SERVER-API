@@ -7,65 +7,33 @@ datasource db {
   provider = "postgresql"
 }
 
-model Card {
-  id             String   @id @default(uuid())
-  cardName       String
-  cardHolderName String
-  cardNumber     String   @unique
-  expiryDate     String
-  cvv            String
-  cardType       CardType @default(DEBIT)
-  cardBrand      String
-  bankName       String?
-  status         Status   @default(ACTIVE)
-  isDefault      Boolean  @default(false)
-  balance        Float    @default(0.0)
-  currency       String   @default("USD")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@map("cards")
-}
-
-enum CardType {
-  CREDIT
-  DEBIT
-  PREPAID
-}
-
-enum Status {
-  ACTIVE
-  BLOCKED
-  EXPIRED
-}
-
-// * AUTH PRIMA-----------
-// * AUTH PRIMA-----------
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id
   name          String
-  email         String    @unique
-  emailVerified Boolean
+  email         String
+  emailVerified Boolean   @default(false)
   image         String?
+  address       String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
-
-  role          String?   @default("CUSTOMER")
-  phone         String?
-  status        String?   @default("ACTIVE")
-
+  role          String?   @default("customer")
+  isActive      Boolean   @default(true)
   sessions      Session[]
   accounts      Account[]
 
+  //! relations
+  providerProfile ProviderProfile?
+  ordersPlaced    Order[]          @relation("CustomerOrders")
+  reviews         Review[]
+
+  @@unique([email])
   @@map("user")
 }
 
-
 model Session {
-  id        String   @id @default(cuid())
+  id        String   @id
   expiresAt DateTime
-  token     String   @unique
+  token     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -73,11 +41,13 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([token])
+  @@index([userId])
   @@map("session")
 }
 
 model Account {
-  id                    String    @id @default(cuid())
+  id                    String    @id
   accountId             String
   providerId            String
   userId                String
@@ -92,16 +62,122 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  @@index([userId])
   @@map("account")
 }
 
 model Verification {
-  id         String    @id @default(cuid())
+  id         String   @id
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime? @default(now())
-  updatedAt  DateTime? @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
+  @@index([identifier])
   @@map("verification")
+}
+
+model ProviderProfile {
+  id             String  @id @default(uuid())
+  userId         String  @unique
+  restaurantName String
+  cuisineType    String
+  address        String
+  coverImageUrl  String?
+
+  //! relation to User table
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meals  Meal[]
+  orders Order[]
+
+  @@map("provider_profile")
+}
+
+model Category {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  imageUrl String?
+
+  //? relations
+  meals Meal[]
+
+  @@map("category")
+}
+
+model Meal {
+  id          String   @id @default(uuid())
+  providerId  String
+  categoryId  String
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  //! relations
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  category   Category        @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  @@map("meal")
+}
+
+enum OrderStatus {
+  placed
+  preparing
+  out_for_delivery
+  delivered
+  cancelled
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  customerId      String
+  providerId      String
+  deliveryAddress String
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  status          OrderStatus @default(placed)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  //! relations
+  customer User            @relation("CustomerOrders", fields: [customerId], references: [id])
+  provider ProviderProfile @relation(fields: [providerId], references: [id])
+  items    OrderItem[]
+
+  @@map("order")
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String
+  mealId      String
+  quantity    Int
+  priceAtTime Decimal @db.Decimal(10, 2)
+
+  //? relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  meal  Meal  @relation(fields: [mealId], references: [id])
+
+  @@map("order_item")
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  customerId String
+  mealId     String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  //? relations
+  customer User @relation(fields: [customerId], references: [id])
+  meal     Meal @relation(fields: [mealId], references: [id])
+
+  @@unique([customerId, mealId])
+  @@map("review")
 }

@@ -1,30 +1,57 @@
-// src/app.ts
-import express from "express";
+import express, { Application } from "express";
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
-import { CardRoutes } from "./modules/card/card.router";
-import { AdminRoutes } from "./modules/admin/admin.router";
 import { auth } from "./lib/auth";
-import cookieParser from 'cookie-parser';
+import { mealRoutes } from "./module/meals/meals.routes";
+import { providerRoutes } from "./module/provider/provider.routes";
+import { categoryRoutes } from "./module/category/category.routes";
+import { orderRoutes } from "./module/orders/orders.routes";
+import { reviewRoutes } from "./module/review/review.routes";
+import { adminRoutes } from "./module/admin/admin.routes";
+import { userRoutes } from "./module/user/user.routes";
+import { globalErrorHandler } from "./middleware/error.middleware";
 
-const app = express();
+const app: Application = express();
 
-app.use(cookieParser());
+//! Trust proxy for secure cookies on Vercel
+app.set("trust proxy", 1);
+
+//? json Parser
+app.use(express.json());
+
+//! CROS setup
 app.use(
   cors({
-    origin: "http://localhost:3000", 
+    origin: (origin, callback) => {
+      const allowed = process.env.FRONTEND_URL?.replace(/\/$/, "");
+      if (!origin || origin.replace(/\/$/, "") === allowed) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-  })
+  }),
 );
 
-app.use(express.json({ limit: "15mb" }));
-app.use(express.urlencoded({ limit: "15mb", extended: true }));
+//! better auth
 
-app.use("/api/auth", toNodeHandler(auth)); 
+app.all("/api/auth/*any", toNodeHandler(auth));
 
-app.use("/api/v1/cards", CardRoutes);
-app.use("/api/v1/admin", AdminRoutes);
+app.get("/", (req, res) => {
+  res.send("Hello!");
+});
+
+//? api routes
+app.use("/api/meals", mealRoutes);
+app.use("/api/providers", providerRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/users", userRoutes);
+
+//? Global Error Handler
+app.use(globalErrorHandler);
 
 export default app;

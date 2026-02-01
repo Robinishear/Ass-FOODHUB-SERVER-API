@@ -1,35 +1,38 @@
 {
-  "name": "card-operation-s-r",
+  "name": "food-blog",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "seed:admin": "tsx seed_admin.ts",
+    "build": "prisma generate && tsup",
+    "postinstall": "prisma generate"
   },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "packageManager": "pnpm@10.28.1",
   "devDependencies": {
-    "@better-auth/cli": "^1.4.18",
-    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "^25.0.7",
+    "@types/node": "^25.0.10",
+    "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.16.0",
-    "prisma": "^7.2.0",
+    "dotenv": "^17.2.3",
+    "prisma": "^7.3.0",
+    "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.2.0",
-    "@prisma/client": "^7.2.0",
-    "better-auth": "^1.4.18",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "better-auth": "^1.4.17",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
-    "pg": "^8.16.3"
+    "nodemailer": "^7.0.13",
+    "pg": "^8.17.2"
   }
 }

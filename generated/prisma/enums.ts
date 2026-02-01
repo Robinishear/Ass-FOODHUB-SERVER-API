@@ -9,19 +9,12 @@
 * 🟢 You can import this file directly.
 */
 
-export const CardType = {
-  CREDIT: 'CREDIT',
-  DEBIT: 'DEBIT',
-  PREPAID: 'PREPAID'
+export const OrderStatus = {
+  placed: 'placed',
+  preparing: 'preparing',
+  out_for_delivery: 'out_for_delivery',
+  delivered: 'delivered',
+  cancelled: 'cancelled'
 } as const
 
-export type CardType = (typeof CardType)[keyof typeof CardType]
-
-
-export const Status = {
-  ACTIVE: 'ACTIVE',
-  BLOCKED: 'BLOCKED',
-  EXPIRED: 'EXPIRED'
-} as const
-
-export type Status = (typeof Status)[keyof typeof Status]
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
