@@ -7,7 +7,7 @@ async function main() {
   console.log("***  Seeding Admin User...  ***");
 
   const adminEmail = process.env.ADMIN_EMAIL || "admin@foodhub.com";
-  const adminPassword = process.env.ADMIN_PASS || "admin123";
+  const adminPassword = process.env.ADMIN_PASS || "Admin@12345";
   const adminName = process.env.ADMIN_NAME || "System Admin";
 
   // Check if user exists
